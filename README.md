@@ -159,26 +159,27 @@ Project dapat dijalankan menggunakan:
 * Hosting HTML biasa
 
 ---
-
 ## Struktur Folder
 
-assets/
-├── css/
-│   └── style.css
-├── images/
-│   ├── cover.png
-│   ├── qris.jpg
-│   ├── bem.webp
-│   ├── sem.webp
-│   ├── lem.webp
-│   ├── whatsapp.svg.webp
-│   └── ori.svg
-index.html
-checkout.html
-payment.html
-admin.html
-README.md
-
+```text
+.
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── images/
+│       ├── cover.png
+│       ├── qris.jpg
+│       ├── bem.webp
+│       ├── sem.webp
+│       ├── lem.webp
+│       ├── whatsapp.svg.webp
+│       └── ori.svg
+├── index.html
+├── checkout.html
+├── payment.html
+├── admin.html
+└── README.md
+```
 ---
 
 ## Catatan
