@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <title>BEM Checkout</title>
+
+    <link rel="stylesheet" href="assets/css/style.css" />
+
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="mobile-frame">
+      <!-- COVER -->
+      <div class="header">
+        <img src="assets/images/cover.png" alt="Cover" />
+      </div>
+
+      <div class="checkout-header">
+        <a href="index.html" class="back-btn">
+          <span class="back-arrow">←</span>
+
+          <span class="back-text"> Kembali </span>
+        </a>
+
+        <div class="checkout-title" id="checkoutTitle">CHECKOUT</div>
+      </div>
+
+      <div class="content">
+        <div id="infoProduk" class="alert-box alert-info show">Loading...</div>
+
+        <div class="form-group">
+          <label>Nama Pembeli</label>
+          <input id="nama" class="input" placeholder="Masukkan nama" />
+        </div>
+
+        <div class="form-group">
+          <label>Daftar Tag</label>
+
+          <textarea
+            id="tagList"
+            placeholder="#akun1
+#akun2
+#akun3"
+          ></textarea>
+        </div>
+
+        <div class="total-box">
+          <div class="total-label">Jumlah Tag</div>
+
+          <div id="jumlahTag" class="total-price">0</div>
+
+          <br />
+
+          <div class="total-label">Total Pembayaran</div>
+
+          <div id="totalHarga" class="total-price">Rp0</div>
+
+          <button type="button" class="copy-btn" onclick="copyTotal()">
+            📋 SALIN NOMINAL
+          </button>
+        </div>
+
+        <div class="qris-box">
+          <h3>QRIS PEMBAYARAN.</h3>
+
+          <br />
+
+          <img src="assets/images/qris.jpg" alt="QRIS" />
+        </div>
+
+        <button class="button" onclick="kirimPesanan()">
+          <img
+            src="assets/images/whatsapp.svg.webp"
+            class="wa-icon"
+            alt="WhatsApp"
+          />
+
+          KIRIM BUKTI PEMBAYARAN
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbzy3Ku4FGpQm0CJTcTv8_jKcerRDlUNhLxXrbm6QeGMrsaIiq7Y0jzTk0Lb9EdSKy8/exec";
+
+      const params = new URLSearchParams(window.location.search);
+
+      const PRODUK = params.get("produk") || "BEM";
+
+      let HARGA = 0;
+
+      document.title = PRODUK + " Checkout";
+
+      async function loadSettings() {
+        const res = await fetch(WEBAPP_URL + "?action=settings");
+
+        const settings = await res.json();
+
+        HARGA = settings[PRODUK].harga;
+
+        document.getElementById("checkoutTitle").innerHTML =
+          `⚜️ ${settings[PRODUK].nama} CHECKOUT ⚜️`;
+
+        document.getElementById("infoProduk").innerHTML =
+          `Harga 89/pcs ${settings[PRODUK].nama} Rp${Number(HARGA).toLocaleString("id-ID")}
+<br>
+Minimal pembelian 2 tag`;
+      }
+
+      loadSettings();
+
+      const tagList = document.getElementById("tagList");
+
+      tagList.addEventListener("input", updateTotal);
+
+      function updateTotal() {
+        const tags = tagList.value.split("\n").filter((x) => x.trim() !== "");
+
+        const jumlah = tags.length;
+
+        const total = jumlah * HARGA;
+
+        document.getElementById("jumlahTag").innerText = jumlah;
+
+        document.getElementById("totalHarga").innerText =
+          "Rp" + total.toLocaleString("id-ID");
+      }
+
+      function copyTotal() {
+        const tags = document
+          .getElementById("tagList")
+          .value.split("\n")
+          .filter((x) => x.trim() !== "");
+
+        const total = tags.length * HARGA;
+
+        navigator.clipboard.writeText(total.toString());
+
+        showNotif("📋 Nominal disalin: Rp" + total.toLocaleString("id-ID"));
+      }
+
+      async function kirimPesanan() {
+        const nama = document.getElementById("nama").value.trim();
+
+        const tags = tagList.value.split("\n").filter((x) => x.trim() !== "");
+
+        if (!nama) {
+          showNotif("️⚠️ Masukkan nama pembeli");
+
+          return;
+        }
+
+        if (tags.length < 2) {
+          showNotif("⚠️ Minimal pembelian 2 tag");
+
+          return;
+        }
+
+        const total = tags.length * HARGA;
+
+        const btn = document.querySelector(".button");
+
+        btn.disabled = true;
+
+        btn.innerText = "MENGIRIM...";
+
+        try {
+          await fetch(WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+
+            body: JSON.stringify({
+              produk: PRODUK,
+
+              nama: nama,
+
+              jumlahTag: tags.length,
+
+              daftarTag: tags.join("\n"),
+
+              total: total,
+            }),
+          });
+
+          const nomorWA = "6285807254128";
+
+          const pesan = `Halo Admin
+
+Saya sudah melakukan pembayaran.
+Nama: ${nama}
+Produk: ${PRODUK}
+Jumlah Tag: ${tags.length}
+Total: Rp${total.toLocaleString("id-ID")}
+
+Mohon diproses, bukti transfer saya kirim pada chat ini.`;
+
+          showNotif(
+            "✅ Pesanan berhasil dikirim.\nSilakan kirim bukti pembayaran ke WhatsApp Admin.",
+          );
+
+          window.open(
+            `https://wa.me/${nomorWA}?text=${encodeURIComponent(pesan)}`,
+            "_blank",
+          );
+
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } catch (err) {
+          showNotif("❌ Gagal mengirim pesanan");
+        }
+
+        btn.disabled = false;
+
+        btn.innerText = "KIRIM PESANAN";
+      }
+
+      let notifTimer;
+
+      function showNotif(pesan) {
+        const notif = document.getElementById("notif");
+
+        notif.innerText = pesan;
+
+        notif.classList.add("show");
+
+        clearTimeout(notifTimer);
+
+        notifTimer = setTimeout(() => {
+          notif.classList.remove("show");
+        }, 1500);
+      }
+    </script>
+    <div id="notif" class="notif"></div>
+  </body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>DOLE'S KINGDOM ADMIN</title>
+  </head>
+
+  <body>
+    <div class="mobile-frame">
+      <!-- COVER -->
+      <div class="header">
+        <img src="assets/images/cover.png" alt="Cover" />
+      </div>
+
+      <div class="top-info">⚜️ ADMIN PANEL ⚜️</div>
+
+      <div class="navbar">
+        <button class="nav-btn" onclick="logout()">🚪 Admin Logout</button>
+      </div>
+      <br />
+
+      <!-- NAVBAR -->
+      <div class="navbar">
+        <a href="index.html" class="nav-btn"> Home </a>
+
+        <a href="admin.html" class="nav-btn active"> Admin </a>
+      </div>
+      <div class="content">
+        <div class="total-box">
+          <div class="total-label">TOTAL PENDING</div>
+
+          <div class="total-price" id="pendingCount">0</div>
+        </div>
+
+        <div class="menu-tab">
+          <button id="ordersTab" class="tab-btn active" onclick="showOrders()">
+            📦 Pesanan
+          </button>
+
+          <button id="settingsTab" class="tab-btn" onclick="showSettings()">
+            ⚙️ Pengaturan
+          </button>
+        </div>
+
+        <div id="filterTabs" class="menu-tab">
+          <button class="tab-btn active" onclick="setFilter('ALL', this)">
+            ALL
+          </button>
+
+          <button class="tab-btn" onclick="setFilter('BEM', this)">BEM</button>
+
+          <button class="tab-btn" onclick="setFilter('SEM', this)">SEM</button>
+
+          <button class="tab-btn" onclick="setFilter('LEM', this)">LEM</button>
+        </div>
+
+        <div id="orderList" class="order-list"></div>
+        <div id="settingsPanel" style="display: none"></div>
+      </div>
+    </div>
+    <script>
+      const isLogin = localStorage.getItem("adminLogin");
+
+      const loginTime = localStorage.getItem("adminLoginTime");
+
+      const maxAge = 24 * 60 * 60 * 1000;
+
+      if (!isLogin || !loginTime || Date.now() - Number(loginTime) > maxAge) {
+        localStorage.removeItem("adminLogin");
+
+        localStorage.removeItem("adminLoginTime");
+
+        location.href = "admin-login.html";
+      }
+
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbzy3Ku4FGpQm0CJTcTv8_jKcerRDlUNhLxXrbm6QeGMrsaIiq7Y0jzTk0Lb9EdSKy8/exec";
+
+      let allOrders = [];
+      let currentFilter = "ALL";
+
+      async function loadOrders(showLoading = false) {
+        const list = document.getElementById("orderList");
+
+        if (showLoading) {
+          list.innerHTML = `
+<div class="empty">
+
+📦 Mengambil data pesanan...
+
+<div class="spinner"></div>
+
+</div>
+`;
+        }
+
+        try {
+          const res = await fetch(API_URL + "?action=orders");
+
+          allOrders = await res.json();
+
+          renderOrders();
+        } catch (err) {
+          list.innerHTML = `
+<div class="empty">
+
+❌ Gagal memuat pesanan
+
+</div>
+`;
+        }
+      }
+
+      function setFilter(type, btn) {
+        currentFilter = type;
+
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((el) => el.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        renderOrders();
+      }
+
+      function renderOrders() {
+        const list = document.getElementById("orderList");
+
+        list.innerHTML = "";
+
+        let pending = 0;
+
+        allOrders.forEach((order) => {
+          if (order.status !== "PENDING") return;
+
+          pending++;
+
+          if (currentFilter !== "ALL" && currentFilter !== order.produk) {
+            return;
+          }
+
+          let badge = "";
+
+          if (order.produk === "BEM") {
+            badge = '<span class="product-badge badge-bem">BEM</span>';
+          }
+
+          if (order.produk === "SEM") {
+            badge = '<span class="product-badge badge-sem">SEM</span>';
+          }
+
+          if (order.produk === "LEM") {
+            badge = '<span class="product-badge badge-lem">LEM</span>';
+          }
+
+          list.innerHTML += `
+<div class="order-card">
+
+${badge}
+
+<div class="order-id">
+${order.id}
+</div>
+
+<div class="order-name">
+${order.nama}
+</div>
+
+<div class="order-info">
+
+Jumlah Tag :
+${order.jumlahTag}
+
+<br>
+
+Total :
+Rp${Number(order.total).toLocaleString("id-ID")}
+
+</div>
+
+<div class="status-pending">
+
+PENDING
+
+</div>
+<button
+class="copy-btn"
+onclick="copyTag('${order.id}')">
+
+📋 SALIN TAG
+
+</button>
+
+<button
+class="button"
+onclick="
+selesaikan(
+'${order.sheet}',
+${order.row}
+)">
+
+✅ SELESAIKAN
+
+</button>
+
+</div>
+`;
+        });
+
+        document.getElementById("pendingCount").innerText = pending;
+      }
+
+      async function selesaikan(sheet, row) {
+        if (!confirm("Pesanan sudah selesai?")) {
+          return;
+        }
+
+        await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "complete",
+            sheet: sheet,
+            row: row,
+          }),
+        });
+
+        showNotif("Pesanan selesai");
+
+        loadOrders();
+      }
+
+      loadOrders(true);
+
+      setInterval(() => {
+        loadOrders(false);
+      }, 60000);
+      function copyTag(id) {
+        const order = allOrders.find((o) => o.id === id);
+
+        if (!order) return;
+
+        navigator.clipboard.writeText(order.daftarTag || "").then(() => {
+          showNotif("Tag berhasil disalin");
+        });
+      }
+      function showNotif(text) {
+        const notif = document.getElementById("notif");
+
+        notif.innerText = text;
+
+        notif.classList.add("show");
+
+        setTimeout(() => {
+          notif.classList.remove("show");
+        }, 3000);
+      }
+      async function loadSettings() {
+        const res = await fetch(API_URL + "?action=settings");
+
+        const data = await res.json();
+
+        document.getElementById("settingsPanel").innerHTML = `
+
+<div class="order-card">
+
+<h3>harga BEM/tag</h3>
+
+
+
+<input
+id="bemHarga"
+class="input"
+value="${data.BEM.harga}">
+
+</div>
+
+<div class="order-card">
+
+<h3>harga SEM/tag</h3>
+
+
+
+<input
+id="semHarga"
+class="input"
+value="${data.SEM.harga}">
+
+</div>
+
+<div class="order-card">
+
+<h3>harga LEM/tag</h3>
+
+
+
+<input
+id="lemHarga"
+class="input"
+value="${data.LEM.harga}">
+
+</div>
+
+<button
+class="button"
+onclick="simpanSettings()">
+
+💾 SIMPAN
+
+</button>
+
+`;
+      }
+
+      async function updateProduk(produk, nama, harga) {
+        await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "updateSetting",
+
+            produk: produk,
+
+            nama: nama,
+
+            harga: Number(harga),
+          }),
+        });
+      }
+
+      async function simpanSettings() {
+        await updateProduk(
+          "BEM",
+          document.getElementById("bemNama").value,
+          document.getElementById("bemHarga").value,
+        );
+
+        await updateProduk(
+          "SEM",
+          document.getElementById("semNama").value,
+          document.getElementById("semHarga").value,
+        );
+
+        await updateProduk(
+          "LEM",
+          document.getElementById("lemNama").value,
+          document.getElementById("lemHarga").value,
+        );
+
+        showNotif("✅ Pengaturan berhasil disimpan");
+      }
+
+      async function showSettings() {
+        document.getElementById("filterTabs").style.display = "none";
+
+        document.getElementById("ordersTab").classList.remove("active");
+
+        document.getElementById("settingsTab").classList.add("active");
+
+        document.getElementById("orderList").style.display = "none";
+
+        const panel = document.getElementById("settingsPanel");
+
+        panel.style.display = "block";
+
+        panel.innerHTML = `
+<div class="empty">
+
+⚙️ Mengambil pengaturan...
+
+<div class="spinner"></div>
+
+</div>
+`;
+
+        await loadSettings();
+      }
+
+      function showOrders() {
+        document.getElementById("settingsTab").classList.remove("active");
+
+        document.getElementById("ordersTab").classList.add("active");
+
+        document.getElementById("filterTabs").style.display = "flex";
+
+        document.getElementById("orderList").style.display = "block";
+
+        document.getElementById("settingsPanel").style.display = "none";
+      }
+
+      function logout() {
+        localStorage.removeItem("adminLogin");
+
+        localStorage.removeItem("adminLoginTime");
+
+        location.href = "admin-login.html";
+      }
+    </script>
+    <div id="notif" class="notif"></div>
+  </body>
+</html>

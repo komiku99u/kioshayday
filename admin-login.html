@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Admin Login</title>
+
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="mobile-frame">
+      <!-- COVER -->
+      <div class="header">
+        <img src="assets/images/cover.png" alt="Cover" />
+      </div>
+      <div class="top-info">
+        <div id="waktu"></div>
+      </div>
+      <div class="navbar">
+        <a href="index.html" class="nav-btn"> Home </a>
+
+        <a href="admin.html" class="nav-btn active"> Admin </a>
+      </div>
+      <div class="content">
+        <h3 style="text-align: center">🔐 LOGIN ADMIN</h3>
+        <br />
+
+        <input
+          id="password"
+          class="input"
+          type="password"
+          placeholder="Masukkan Password"
+        />
+
+        <button class="button" onclick="login()">MASUK</button>
+      </div>
+    </div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbzy3Ku4FGpQm0CJTcTv8_jKcerRDlUNhLxXrbm6QeGMrsaIiq7Y0jzTk0Lb9EdSKy8/exec";
+
+      async function login() {
+        const pass = document.getElementById("password").value;
+
+        const res = await fetch(API_URL + "?action=adminPassword");
+
+        const data = await res.json();
+
+        if (pass === data.password) {
+          localStorage.setItem("adminLogin", "true");
+
+          localStorage.setItem("adminLoginTime", Date.now());
+
+          location.href = "admin.html";
+        } else {
+          alert("Password salah");
+        }
+      }
+      function updateWaktu() {
+        const sekarang = new Date();
+
+        const hari = [
+          "Minggu",
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat",
+          "Sabtu",
+        ];
+
+        const bulan = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+
+        const namaHari = hari[sekarang.getDay()];
+        const tanggal = sekarang.getDate();
+        const namaBulan = bulan[sekarang.getMonth()];
+        const tahun = sekarang.getFullYear();
+
+        let jam = sekarang.getHours().toString().padStart(2, "0");
+        let menit = sekarang.getMinutes().toString().padStart(2, "0");
+        let detik = sekarang.getSeconds().toString().padStart(2, "0");
+
+        document.getElementById("waktu").innerHTML =
+          `${namaHari}, ${tanggal} ${namaBulan} ${tahun} • ${jam}:${menit}:${detik}`;
+      }
+
+      updateWaktu();
+
+      setInterval(updateWaktu, 1000);
+    </script>
+  </body>
+</html>

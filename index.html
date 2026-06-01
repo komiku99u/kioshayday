@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <title>WARUNG_HAYDAY</title>
+
+    <link rel="stylesheet" href="assets/css/style.css" />
+
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="mobile-frame">
+      <!-- COVER -->
+      <!-- COVER -->
+      <div class="header">
+        <img src="assets/images/cover.png" alt="Cover" />
+      </div>
+
+      <div class="top-info">
+        <div id="waktu"></div>
+      </div>
+
+      <!-- NAVBAR -->
+      <div class="navbar">
+        <a href="index.html" class="nav-btn active"> Home </a>
+
+        <a href="admin.html" class="nav-btn"> Admin </a>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <div class="title">
+          <h1>PILIH KEBUTUHANMU</h1>
+        </div>
+
+        <div id="loadingPage" class="loading-page">
+          📦 Memuat katalog...
+
+          <div class="spinner"></div>
+        </div>
+        <div id="menuGrid" class="menu-grid" style="display: none">
+          <!-- ITEM 1 -->
+          <a href="checkout.html?produk=BEM" class="product-card">
+            <div class="product-image">
+              <img src="assets/images/bem.webp" alt="" />
+            </div>
+
+            <div class="product-info">
+              <div class="product-name">
+                <img src="assets/images/ori.svg" class="mall-badge" />
+                89/pcs BEM - item upgrade barn
+              </div>
+
+              <div id="hargaBEM" class="product-price">Rp750</div>
+
+              <div class="product-meta">
+                <div class="rating-box">⭐ 4.9</div>
+
+                <div>10RB+ terjual</div>
+              </div>
+            </div>
+          </a>
+
+          <!-- ITEM 2 -->
+          <a href="checkout.html?produk=SEM" class="product-card">
+            <div class="product-image">
+              <img src="assets/images/sem.webp" alt="" />
+            </div>
+
+            <div class="product-info">
+              <div class="product-name">
+                <img src="assets/images/ori.svg" class="mall-badge" />
+                89/pcs SEM - item upgrade silo
+              </div>
+
+              <div id="hargaSEM" class="product-price">Rp350</div>
+
+              <div class="product-meta">
+                <div class="rating-box">⭐ 5.0</div>
+
+                <div>9RB+ terjual</div>
+              </div>
+            </div>
+          </a>
+          <!-- ITEM 3 -->
+          <a href="checkout.html?produk=LEM" class="product-card">
+            <div class="product-image">
+              <img src="assets/images/lem.webp" alt="" />
+            </div>
+
+            <div class="product-info">
+              <div class="product-name">
+                <img src="assets/images/ori.svg" class="mall-badge" />
+                89/pcs LEM - item membuka lahan
+              </div>
+
+              <div id="hargaLEM" class="product-price">Rp250</div>
+
+              <div class="product-meta">
+                <div class="rating-box">⭐ 4.9</div>
+
+                <div>5RB+ terjual</div>
+              </div>
+            </div>
+          </a>
+          <!-- ITEM 4 -->
+          <!-- ITEM 4 -->
+          <a href="payment.html" class="product-card">
+            <div class="product-image">
+              <img src="assets/images/paya.png" alt="" />
+            </div>
+
+            <div class="product-info">
+              <div class="product-name">pembayaran</div>
+
+              <div class="product-price">E-Wallet</div>
+
+              <div class="product-meta">
+                <div>Aman & Cepat</div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbzy3Ku4FGpQm0CJTcTv8_jKcerRDlUNhLxXrbm6QeGMrsaIiq7Y0jzTk0Lb9EdSKy8/exec";
+
+      function updateWaktu() {
+        const sekarang = new Date();
+
+        const hari = [
+          "Minggu",
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat",
+          "Sabtu",
+        ];
+
+        const bulan = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+
+        const namaHari = hari[sekarang.getDay()];
+        const tanggal = sekarang.getDate();
+        const namaBulan = bulan[sekarang.getMonth()];
+        const tahun = sekarang.getFullYear();
+
+        let jam = sekarang.getHours().toString().padStart(2, "0");
+        let menit = sekarang.getMinutes().toString().padStart(2, "0");
+        let detik = sekarang.getSeconds().toString().padStart(2, "0");
+
+        document.getElementById("waktu").innerHTML =
+          `${namaHari}, ${tanggal} ${namaBulan} ${tahun} • ${jam}:${menit}:${detik}`;
+      }
+
+      updateWaktu();
+
+      setInterval(updateWaktu, 1000);
+
+      async function loadHargaProduk() {
+        try {
+          const res = await fetch(API_URL + "?action=settings");
+
+          const data = await res.json();
+
+          document.getElementById("hargaBEM").innerText =
+            "Rp" + Number(data.BEM.harga).toLocaleString("id-ID");
+
+          document.getElementById("hargaSEM").innerText =
+            "Rp" + Number(data.SEM.harga).toLocaleString("id-ID");
+
+          document.getElementById("hargaLEM").innerText =
+            "Rp" + Number(data.LEM.harga).toLocaleString("id-ID");
+          return true;
+        } catch (err) {
+          console.log("Gagal memuat harga", err);
+        }
+      }
+
+      async function initPage() {
+        await loadHargaProduk();
+
+        document.getElementById("loadingPage").style.display = "none";
+
+        document.getElementById("menuGrid").style.display = "grid";
+      }
+
+      initPage();
+    </script>
+  </body>
+</html>
