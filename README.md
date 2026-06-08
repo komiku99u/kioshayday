@@ -1,4 +1,4 @@
-# WARUNG_HAYDAY
+# KIOS_HAYDAY
 
 Sistem pemesanan produk Hay Day berbasis HTML, CSS, JavaScript, Google Sheets, dan Google Apps Script.
 
